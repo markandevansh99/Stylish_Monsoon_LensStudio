@@ -207,3 +207,114 @@ function configureEnvironmentMap()
         }
     }
 }
+
+function configureLogo()
+{
+    if( script.customSprite && script.spriteTexture )
+    {
+        if( script.customReflection && script.properties.api.lensMaterialCustom )
+        {
+            setEmissiveTexture( script.properties.api.lensMaterialCustom, script.spriteTexture, script.spriteIntensity );
+        }
+        else if( script.customReflection == false && script.properties.api.lensMaterial )
+        {
+            setEmissiveTexture( script.properties.api.lensMaterial, script.spriteTexture, script.spriteIntensity );
+        } 
+
+        setTheLogoSize();
+                   
+    }
+    else
+    {
+        if( script.customReflection && script.properties.api.lensMaterialCustom && script.properties.api.blackTexture )
+        {
+            setEmissiveTexture( script.properties.api.lensMaterialCustom, script.properties.api.blackTexture, 0 );
+        }
+        else if( script.customReflection == false && script.properties.api.lensMaterial && script.properties.api.blackTexture )
+        {
+            setEmissiveTexture( script.properties.api.lensMaterial, script.properties.api.blackTexture, 0 );
+        }   
+    }
+}
+
+function setTheLogoSize()
+{
+    var logoWidth = script.spriteTexture.getWidth();
+    var logoHeight = script.spriteTexture.getHeight();
+
+    logoAspect = logoWidth / logoHeight;
+
+    var newScaleX = 1;
+    var newScaleY = 1;
+
+    if( logoAspect >= uvAspect )
+    {
+        newScaleX = 1 / uvWidth;
+        newScaleY = 1 / ( uvWidth / logoAspect );
+    }
+    else
+    {
+        newScaleX = 1 / ( uvHeight * logoAspect );
+        newScaleY = 1 / uvHeight;
+    }
+
+    var logoScale = new vec2( newScaleX * 0.5, newScaleY * 0.5 );
+    var logoPlacement = new vec2( ( 1.0 - logoScale.x ) / 2, ( 1.0 - logoScale.y ) / 2);
+    logoOffset = new vec2( -logoPlacement.x * logoOffset.x, logoPlacement.y * logoOffset.y );
+
+    if( script.customReflection && script.properties.api.lensMaterialCustom )
+    {
+        script.properties.api.lensMaterialCustom.mainPass.uv2Scale = logoScale;
+        script.properties.api.lensMaterialCustom.mainPass.uv2Offset = logoPlacement.sub( logoOffset );
+    }
+    else if( script.customReflection == false && script.properties.api.lensMaterial )
+    {
+        script.properties.api.lensMaterial.mainPass.uv2Scale = logoScale;
+        script.properties.api.lensMaterial.mainPass.uv2Offset = logoPlacement.sub( logoOffset );
+    } 
+}
+
+function configureSecondHead()
+{
+    if( script.twoHeads )
+    {
+        for( var i = 1; i < 2; i++ )
+        {
+            if( script.properties.api.headBinding )
+            {
+                var secondHeadObject = script.properties.api.headBinding.getParent().copyWholeHierarchy( script.properties.api.headBinding );
+                secondHeadObject.getFirstComponent( "Component.Head" ).faceIndex = i;
+            }
+            else
+            {
+                print( "SunglassesController: Make sure Head Binding object exist and is set on the Sunglasses Properties [DO_NOT_EDIT] object." );
+            }
+
+            if( script.properties.api.faceRetouch )
+            {
+                var secondHeadRetouch = script.properties.api.faceRetouch.getParent().copyWholeHierarchy( script.properties.api.faceRetouch );
+                secondHeadRetouch.getFirstComponent( "Component.RetouchVisual" ).faceIndex = i;
+            }
+            else
+            {
+                print( "SunglassesController: Make sure Face Retouch object exist and is set on the Sunglasses Properties [DO_NOT_EDIT] object." );
+            }         
+        }
+    }
+}
+
+function setEmissiveTexture( material, texture, intensity )
+{
+    material.mainPass.emissiveTex = texture;
+    material.mainPass.emissiveIntensity = intensity;
+}
+
+function setColorWithAlpha( color, alpha )
+{
+    return new vec4( color.x, color.y, color.z, alpha );
+}
+
+function remap( value, low1, high1, low2, high2 ) 
+{
+    return low2 + ( high2 - low2 ) * ( value - low1 ) / ( high1 - low1 );
+}
