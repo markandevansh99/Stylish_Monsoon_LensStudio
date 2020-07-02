@@ -107,3 +107,103 @@ function configureFramesCustomization()
         script.properties.api.frameMaterial.mainPass.baseColor = setColorWithAlpha( frameColor, script.frameAlpha );
     }
 }
+
+function configureFrameTransform()
+{
+    if( script.properties.api.sunglassesObject )
+    {
+        var transform = script.properties.api.sunglassesObject.getTransform();
+
+        var ScaleTo = new vec3(
+            transform.getLocalScale().x + script.frameSize,
+            transform.getLocalScale().y + script.frameSize,
+            transform.getLocalScale().z + script.frameSize 
+        );
+
+        var OffsetTo = new vec3(
+            transform.getLocalPosition().x,
+            transform.getLocalPosition().y + ( script.frameOffset * 2 ),
+            transform.getLocalPosition().z
+        );
+            
+        transform.setLocalScale( ScaleTo );
+        transform.setLocalPosition( OffsetTo );
+    }
+}
+
+function configureLensCustomization()
+{
+    var lensColor = script.lensColor;
+
+    if( script.properties.api.lensMeshes )
+    {
+        if( script.customReflection )
+        {
+            for( var i = 0; i < script.properties.api.lensMeshes.length; i++ )
+            {
+                if( script.properties.api.lensMeshes[i] )
+                {
+                    script.properties.api.lensMeshes[i].mainMaterial = script.properties.api.lensMaterialCustom;
+                }
+            }
+
+            if( script.properties.api.lensMaterialCustom )
+            {
+                if( script.properties.api.reflectionTextures )
+                {
+                    script.properties.api.lensMaterialCustom.mainPass.baseColor = setColorWithAlpha( lensColor, script.lensAlpha );
+
+                    if( script.reflectionTexture )
+                    {
+                        script.properties.api.lensMaterialCustom.mainPass.reflectionTex = script.reflectionTexture;
+                        script.properties.api.lensMaterialCustom.mainPass.reflectionIntensity = script.reflectionIntensity;
+                    }
+                    else
+                    {
+                        print( "SunglassesController: Please assign custom reflection map" );
+                    }
+                    
+                }
+            }
+        }
+        else
+        {
+            for( var i = 0; i < script.properties.api.lensMeshes.length; i++ )
+            {
+                if (script.properties.api.lensMeshes[i]) {
+                     script.properties.api.lensMeshes[i].mainMaterial = script.properties.api.lensMaterial;   
+                }
+            }
+
+            if( script.properties.api.lensMaterial )
+            {
+                if( script.properties.api.reflectionTextures )
+                {
+                    script.properties.api.lensMaterial.mainPass.materialParamsTex = script.properties.api.reflectionTextures[ script.lensRoughness ];
+                    script.properties.api.lensMaterial.mainPass.baseColor = setColorWithAlpha( lensColor, script.lensAlpha );
+                }
+            } 
+        }
+    }
+    
+}
+
+function configureEnvironmentMap()
+{
+    if( script.properties.api.envMap )
+    {
+        script.properties.api.envMap.envmapExposure = script.exposure;
+
+        script.properties.api.envMap.envmapRotation = script.rotation;
+
+        if( script.specTextures && script.diffTextures )
+        {
+            script.properties.api.envMap.specularEnvmapTexture = script.specTextures;
+            script.properties.api.envMap.diffuseEnvmapTexture = script.diffTextures;
+        }
+        else
+        {
+            print( "SunglassesController: Please assign custom environment map" );
+        }
+    }
+}
