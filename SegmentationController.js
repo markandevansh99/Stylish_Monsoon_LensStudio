@@ -110,4 +110,136 @@ function configureSegmentationMasks()
 	script.orthographicCameraMasked.maskTexture = script.segmentationTexture;
 }
 
+function configureBackgroundColor()
+{
+	if( !script.backgroundColorBillboard )
+	{
+		print( "SegmentationController, ERROR: Background color billboard is not set");
+		return;
+	}
+
+	if( script.useBackgroundColor )
+	{
+		script.backgroundColorBillboard.mainPass.baseColor = new vec4( script.color.r, script.color.g, script.color.b, script.colorAlpha );
+	}
+	else
+	{
+		script.backgroundColorBillboard.enabled = false;
+	}
+}
+
+function configureImage()
+{
+	if( script.useImage )
+	{
+		if( imageSafetyCheck() )
+		{
+			if( script.tiled )
+			{
+				configureTileImage();
+			}
+			else
+			{
+				configureFillImage();
+			}
+	
+			script.imageBillboard.mainPass.blendMode = script.imageBlendMode;
+			script.imageBillboard.mainPass.baseColor = new vec4( 1.0, 1.0, 1.0, script.imageAlpha );
+		}
+	}
+	else
+	{
+		if(script.imageBillboard){
+			script.imageBillboard.enabled = false;
+		}
+	}
+}
+
+function imageSafetyCheck()
+{
+	if( !script.imageBillboard )
+	{
+		print( "SegmentationController, ERROR: Make sure the image Billboard is set");
+		return false;
+	}
+
+	if( !script.tileMat || !script.tileScrollingMat || !script.fillMat )
+	{
+		print( "SegmentationController, ERROR: Materials are not set");
+		return false;
+	}
+
+	if( !script.imageTexture )
+	{
+		print( "SegmentationController, ERROR: No image texture set");
+		return false;
+	}
+
+	return true;
+}
+
+function configureFillImage()
+{
+	script.imageBillboard.mainMaterial = script.fillMat;
+	script.imageBillboard.mainPass.baseTex = script.imageTexture;
+	script.imageBillboard.stretchMode = fillModeEnums[ script.fillMode ];
+}
+
+function configureTileImage()
+{
+	if( script.scrolling )
+	{
+		script.imageBillboard.mainMaterial = script.tileScrollingMat;
+	}
+	else
+	{
+		script.imageBillboard.mainMaterial = script.tileMat;
+	}
+
+	script.imageBillboard.mainPass.baseTex = script.imageTexture;
+
+	var billboardImage = script.imageBillboard.mainPass.baseTex;
+	var imageSize = new vec2( billboardImage.getWidth(), billboardImage.getHeight() );
+	var deviceSize = new vec2( script.deviceCameraTexture.getWidth(), script.deviceCameraTexture.getHeight() );
+	var imageAspect = imageSize.x / imageSize.y;
+	var deviceAspect = deviceSize.x / deviceSize.y;
+
+	script.imageBillboard.mainPass.uv2Scale = new vec2( script.tileDensity * deviceAspect, script.tileDensity * imageAspect );
+	
+	if( script.scrolling )
+	{
+		script.imageBillboard.mainPass.uv2Offset = new vec2( script.scrollSpeedX, script.scrollSpeedY );
+	}
+	else
+	{
+		script.imageBillboard.mainPass.uv2Offset = new vec2( -script.tileDensity * deviceAspect / 2.0, 0.0 );
+	}
+}
+
+function configurePostEffect()
+{
+	if( !script.postEffect )
+	{
+		print( "SegmentationController, ERROR: Make sure the Post Effect is set");
+		return false;
+	}
+
+	if( script.usePostEffect )
+	{
+		script.postEffect.enabled = true;
+
+		if( script.postEffectTexture )
+		{
+			script.postEffect.mainPass.baseTex = script.postEffectTexture;
+		}
+
+		script.postEffect.mainPass.baseColor = new vec4( 1.0, 1.0, 1.0, script.postEffectAlpha );
+	}
+	else
+	{
+		script.postEffect.enabled = false;
+	}
+}
+
+
 
